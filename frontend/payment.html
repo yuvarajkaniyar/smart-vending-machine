@@ -8,6 +8,9 @@
   <!-- Bootstrap + Google Font -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
   <style>
     body {
@@ -28,8 +31,6 @@
       margin-bottom: 32px;
       font-style: italic;
     }
-
-    /* order box */
     .order-summary {
       background: #fff;
       border-radius: 20px;
@@ -51,50 +52,26 @@
       font-size: 1.2rem;
       color: #e91e63;
     }
-
-    /* payment cards */
-    .payment-methods {
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-      flex-wrap: wrap;
-      margin-bottom: 32px;
-    }
-    .pay-card {
-      border: 2px solid #ccc;
-      border-radius: 15px;
-      padding: 10px 16px;
-      cursor: pointer;
-      user-select: none;
-      text-align: center;
-      min-width: 110px;
-      transition: border-color 0.3s, box-shadow 0.3s;
+    .payment-options {
+      max-width: 500px;
+      margin: 0 auto 24px;
       background: #fff;
+      border-radius: 20px;
+      padding: 18px 24px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
     }
-    .pay-card:hover {
-      border-color: #e91e63;
+    .payment-option-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: #c2185b;
+      cursor: pointer;
     }
-    .pay-card.selected {
-      border-color: #e91e63;
-      box-shadow: 0 0 10px #e91e63aa;
-    }
-    .pay-card img {
-      width: 50px;
-      height: 50px;
-      object-fit: contain;
-    }
-    .pay-card label {
-      display: block;
-      margin-top: 8px;
-      font-weight: 600;
-      color: #333;
-      font-size: 0.95rem;
-    }
-    .pay-card input {
-      display: none;
-    }
-
-    /* pay button */
     .btn-pay {
       background: #e91e63;
       border: none;
@@ -115,13 +92,9 @@
     .btn-pay:not(:disabled):hover {
       background: #c2185b;
     }
-
     @media (max-width: 576px) {
-      .order-summary {
+      .order-summary, .payment-options {
         padding: 20px 16px;
-      }
-      .pay-card {
-        min-width: 100px;
       }
     }
   </style>
@@ -138,37 +111,50 @@
   </div>
 
   <!-- Payment options -->
-  <div class="payment-methods" id="paymentMethods">
-    <div class="pay-card" data-method="Paytm" tabindex="0">
-      <input type="radio" name="paymentMethod" id="paytm" value="Paytm" />
-      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Paytm_logo.svg/1200px-Paytm_logo.svg.png" alt="Paytm" />
-      <label for="paytm">Paytm</label>
-    </div>
-    <div class="pay-card" data-method="PhonePe" tabindex="0">
-      <input type="radio" name="paymentMethod" id="phonepe" value="PhonePe" />
-      <img src="https://upload.wikimedia.org/wikipedia/commons/0/0b/PhonePe_Logo.png" alt="PhonePe" />
-      <label for="phonepe">PhonePe</label>
-    </div>
-    <div class="pay-card" data-method="Google Pay" tabindex="0">
-      <input type="radio" name="paymentMethod" id="gpay" value="Google Pay" />
-      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/512px-Google_%22G%22_Logo.svg.png" alt="Google Pay" />
-      <label for="gpay">Google Pay</label>
-    </div>
+  <div class="payment-options" id="paymentOptions">
+    <label class="payment-option-label">
+      <input type="radio" name="paymentMethod" value="razorpay" checked />
+      <img src="https://cdn.razorpay.com/static/assets/razorpay-glyph.svg" alt="Razorpay" style="height:24px;">
+      Razorpay
+    </label>
+    <!-- Add more payment options here if needed -->
   </div>
 
-  <button class="btn-pay" id="payNow" disabled>Pay Now</button>
+  <button class="btn-pay" id="payNow">Pay Now</button>
 
   <script>
-    // Utility: Parse query params to object
-    function getQueryParams() {
-      const params = new URLSearchParams(window.location.search);
-      return {
-        brand: params.get('brand') || 'Unknown',
-        size: params.get('size') || 'N/A',
-        unitPrice: parseFloat(params.get('unitPrice')) || 0,
-        quantity: parseInt(params.get('quantity')) || 1,
-        totalPrice: parseFloat(params.get('totalPrice')) || 0
-      };
+    // Fetch Razorpay and Firebase configurations from the backend
+    async function fetchConfig() {
+      const [razorpayRes, firebaseRes] = await Promise.all([
+        fetch('/config/razorpay'),
+        fetch('/config/firebase')
+      ]);
+      const razorpayConfig = await razorpayRes.json();
+      const firebaseConfig = await firebaseRes.json();
+      return { razorpayConfig, firebaseConfig };
+    }
+
+    // Utility: Get order details from localStorage (set by product.html) or fallback to query params
+    function getOrderDetails() {
+      let order = null;
+      try {
+        const stored = localStorage.getItem('orderDetails');
+        if (stored) {
+          order = JSON.parse(stored);
+        }
+      } catch (e) {}
+      if (!order) {
+        // fallback to query params
+        const params = new URLSearchParams(window.location.search);
+        order = {
+          brand: params.get('brand') || 'Unknown',
+          size: params.get('size') || 'N/A',
+          unitPrice: parseFloat(params.get('unitPrice')) || 0,
+          quantity: parseInt(params.get('quantity')) || 1,
+          totalPrice: parseFloat(params.get('totalPrice')) || 0
+        };
+      }
+      return order;
     }
 
     // Display order summary
@@ -183,57 +169,102 @@
       `;
     }
 
-    // Handle payment selection UI
-    function setupPaymentSelection() {
-      const payCards = document.querySelectorAll('.pay-card');
-      const payNowBtn = document.getElementById('payNow');
-
-      payCards.forEach(card => {
-        card.addEventListener('click', () => {
-          // Unselect others
-          payCards.forEach(c => c.classList.remove('selected'));
-          card.classList.add('selected');
-
-          // Check the radio input inside clicked card
-          const input = card.querySelector('input[type="radio"]');
-          if (input) input.checked = true;
-
-          // Enable Pay Now button
-          payNowBtn.disabled = false;
-        });
-
-        // Allow keyboard selection (accessibility)
-        card.addEventListener('keydown', e => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            card.click();
-          }
-        });
-      });
+    // Save order and payment info to Firebase
+    function saveOrderToFirebase(order, paymentId) {
+      const db = firebase.database();
+      const orderData = {
+        ...order,
+        paymentId: paymentId,
+        timestamp: new Date().toISOString()
+      };
+      // Save under /orders/{paymentId}
+      return db.ref('orders/' + paymentId).set(orderData);
     }
 
-    // On Pay Now click - simulate payment success
-    function setupPaymentHandler(order) {
+    // Setup Razorpay payment handler
+    function setupPaymentHandler(order, razorpayKey) {
       const payNowBtn = document.getElementById('payNow');
-      payNowBtn.addEventListener('click', () => {
-        const selectedMethod = document.querySelector('input[name="paymentMethod"]:checked');
-        if (!selectedMethod) {
-          alert('Please select a payment method.');
+      payNowBtn.onclick = null;
+      payNowBtn.addEventListener('click', function handlePayNowClick(e) {
+        e.preventDefault();
+        payNowBtn.disabled = true;
+
+        // Debug: Check Razorpay key
+        if (!razorpayKey) {
+          alert('Razorpay key not loaded. Please try again later.');
+          payNowBtn.disabled = false;
           return;
         }
 
-        alert(`Payment successful via ${selectedMethod.value}!\nThank you for purchasing ${order.brand} pads.`);
-        // Here you can redirect or clear cart as needed
-        window.location.href = 'thankyou.html'; // Or any other page
+        // Debug: Check Razorpay script
+        if (typeof Razorpay !== "function") {
+          alert('Razorpay script not loaded. Please check your internet connection.');
+          payNowBtn.disabled = false;
+          return;
+        }
+
+        const selected = document.querySelector('input[name="paymentMethod"]:checked');
+        if (!selected || selected.value !== 'razorpay') {
+          alert('Please select a payment method.');
+          payNowBtn.disabled = false;
+          return;
+        }
+
+        const options = {
+          key: razorpayKey,
+          amount: Math.round(order.totalPrice * 100),
+          currency: 'INR',
+          name: 'Smart Pad Vending',
+          description: 'Payment for Sanitary Pads',
+          image: 'https://your-company-logo-url',
+          handler: function(response) {
+            saveOrderToFirebase(order, response.razorpay_payment_id)
+              .then(() => {
+                alert(`Payment successful! Payment ID: ${response.razorpay_payment_id}`);
+                localStorage.removeItem('orderDetails');
+                window.location.href = 'thankyou.html';
+              })
+              .catch((err) => {
+                alert('Payment succeeded but failed to save order. Please contact support.');
+                window.location.href = 'thankyou.html';
+              });
+          },
+          prefill: {
+            name: order.customerName || 'Customer Name',
+            email: order.customerEmail || 'customer@example.com',
+            contact: order.customerContact || '9999999999'
+          },
+          notes: {
+            address: order.customerAddress || 'Customer Address'
+          },
+          theme: {
+            color: '#F37254'
+          },
+          modal: {
+            ondismiss: function() {
+              payNowBtn.disabled = false;
+            }
+          }
+        };
+
+        try {
+          const rzp = new Razorpay(options);
+          rzp.open();
+        } catch (err) {
+          alert('Failed to open Razorpay. See console for details.');
+          console.error(err);
+          payNowBtn.disabled = false;
+        }
       });
     }
 
     // Initialization
-    const order = getQueryParams();
-    renderOrderSummary(order);
-    setupPaymentSelection();
-    setupPaymentHandler(order);
+    fetchConfig().then(({ razorpayConfig, firebaseConfig }) => {
+      firebase.initializeApp(firebaseConfig);
+      const order = getOrderDetails();
+      renderOrderSummary(order);
+      setupPaymentHandler(order, razorpayConfig.key);
+    });
   </script>
-
 </body>
 </html>
