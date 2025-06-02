@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Payment Successful</title>
+
+  <!-- Google Font + Font‑Awesome -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
+  <style>
+    :root {
+      --pink: #e91e63;
+      --bg1: #fce4ec;
+      --bg2: #f8bbd0;
+      --green: #38b000;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(120deg, var(--bg1), var(--bg2));
+      overflow: hidden;
+      padding: 24px;
+    }
+
+    /* confetti flowers */
+    .confetti {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden
+    }
+
+    .confetti span {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: var(--pink);
+      clip-path: polygon(50% 0%, 60% 35%, 100% 35%, 65% 57%, 75% 100%, 50% 75%, 25% 100%, 35% 57%, 0% 35%, 40% 35%);
+      animation: fall var(--t) linear infinite;
+      opacity: .85;
+      filter: drop-shadow(0 0 1px #d81b60);
+    }
+
+    @keyframes fall {
+      0% {
+        transform: translate3d(var(--x), -10vh, 0) scale(var(--s)) rotate(0deg)
+      }
+
+      100% {
+        transform: translate3d(calc(var(--x) + var(--d)), 110vh, 0) scale(var(--s)) rotate(360deg)
+      }
+    }
+
+    /* card */
+    .card {
+      position: relative;
+      z-index: 10;
+      background: #fff;
+      padding: 40px 30px;
+      border-radius: 25px;
+      width: 100%;
+      max-width: 500px;
+      text-align: center;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
+      animation: slideIn .9s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateY(40px);
+        opacity: 0
+      }
+
+      to {
+        transform: none;
+        opacity: 1
+      }
+    }
+
+    .circle {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      border: 6px solid var(--green);
+      margin: 0 auto 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .circle svg {
+      width: 46px;
+      height: 46px;
+      stroke: var(--green);
+      stroke-width: 5;
+      fill: none;
+      stroke-dasharray: 100;
+      stroke-dashoffset: 100;
+      animation: dash .8s forwards ease-out .2s
+    }
+
+    @keyframes dash {
+      to {
+        stroke-dashoffset: 0
+      }
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      color: var(--pink);
+      margin-bottom: 12px;
+      font-weight: 600
+    }
+
+    p.subtitle {
+      color: #555;
+      font-style: italic;
+      margin-bottom: 26px
+    }
+
+    .order-box {
+      background: #fafafa;
+      border-radius: 15px;
+      padding: 18px 22px;
+      margin-bottom: 18px;
+      font-size: .95rem;
+      text-align: left
+    }
+
+    .order-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 500
+    }
+
+    .order-row.total {
+      color: var(--pink);
+      font-weight: 700
+    }
+
+    .feel-good {
+      font-size: .95rem;
+      margin-bottom: 30px;
+      color: #444;
+      font-style: italic;
+      min-height: 22px;
+      opacity: 0;
+      transition: opacity .4s
+    }
+
+    .btn-wrap {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center
+    }
+
+    a {
+      text-decoration: none
+    }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex: 1 1 140px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 30px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform .25s, box-shadow .25s;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, .1)
+    }
+
+    .btn-shop {
+      background: var(--pink);
+      color: #fff
+    }
+
+    .btn-home {
+      background: #fff;
+      color: var(--pink);
+      border: 2px solid var(--pink)
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, .15)
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="confetti"></div>
+
+  <div class="card">
+    <div class="circle">
+      <svg viewBox="0 0 24 24">
+        <polyline points="5 13 9 17 19 7" />
+      </svg>
+    </div>
+    <h1>Payment Successful!</h1>
+    <p class="subtitle">Thank you for your purchase. Your order is confirmed.</p>
+
+    <div class="order-box" id="orderBox">Loading order…</div>
+    <p class="feel-good" id="feelGood"></p>
+
+    <div class="btn-wrap">
+      <a href="products.html"><button class="btn btn-shop"><i class="fas fa-shopping-bag"></i> Shop Again</button></a>
+      <a href="index.html"><button class="btn btn-home"><i class="fas fa-home"></i> Home</button></a>
+    </div>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+  <script>
+    /* --- 1. Firebase config --- */
+    const firebaseConfig = {
+      apiKey: "AIzaSyAFumMkI_Ov2eIa_izDy3CZwfbYQPVdZNw",
+      authDomain: "smart-vending-machine-66e22.firebaseapp.com",
+      projectId: "smart-vending-machine-66e22",
+      storageBucket: "smart-vending-machine-66e22.firebasestorage.app",
+      messagingSenderId: "483676574873",
+      appId: "1:483676574873:web:3e22334043f1e5f84f9408",
+      measurementId: "G-BKHBCWJSZV"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    /* --- 2. Fetch the most‑recent order --- */
+    const orderBox = document.getElementById('orderBox');
+
+    db.ref('orders').limitToLast(1).once('value').then(snapshot => {
+      let order = null;
+      snapshot.forEach(child => { order = child.val(); });
+      if (order) {
+        orderBox.innerHTML = `
+          <div class="order-row"><span>Brand:</span><span>${order.brand}</span></div>
+          <div class="order-row"><span>Size:</span><span>${order.size}</span></div>
+          <div class="order-row"><span>Quantity:</span><span>${order.quantity || order.qty}</span></div>
+          <div class="order-row"><span>Payment:</span><span>${order.paymentMethod || '—'}</span></div>
+          <div class="order-row total"><span>Total:</span><span>₹${order.totalPrice || order.total}</span></div>`;
+      } else {
+        orderBox.textContent = "No order found.";
+      }
+    }).catch(err => {
+      orderBox.textContent = "Error loading order.";
+      console.error(err);
+    });
+
+    /* --- 3. Uplifting caption --- */
+    const captions = [
+      "Take care of yourself, you're doing amazing. We've got your back! 💖",
+      "You're strong, you're beautiful, and you deserve comfort every day. 🌸",
+      "Self‑care isn’t selfish — it's essential. You've earned it! 💪",
+      "Your well‑being matters. We’re here for you always. 🤗",
+      "You’ve got this! Sending positive vibes and comfy days ahead. ✨"
+    ];
+    const feel = document.getElementById('feelGood');
+    const random = captions[Math.floor(Math.random() * captions.length)];
+    setTimeout(() => { feel.textContent = random; feel.style.opacity = 1; }, 400);
+
+    /* --- 4. Confetti flowers --- */
+    const conf = document.querySelector('.confetti');
+    for (let i = 0; i < 25; i++) {
+      const f = document.createElement('span');
+      f.style.setProperty('--x', `${Math.random() * 100}vw`);
+      f.style.setProperty('--d', `${(Math.random() - .5) * 30}vw`);
+      f.style.setProperty('--t', `${12 + Math.random() * 8}s`);
+      f.style.setProperty('--s', `${.6 + Math.random() * 0.8}`);
+      conf.appendChild(f);
+    }
+  </script>
+</body>
+
+</html>

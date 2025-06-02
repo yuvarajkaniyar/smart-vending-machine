@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Select Your Pad</title>
+  <!-- Bootstrap & Google Font -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ---------- page basics ---------- */
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(to right, #f8bbd0, #fce4ec);
+      padding: 40px 12px;
+    }
+
+    h2.title {
+      color: #c2185b;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .decorative-flourish {
+      text-align: center;
+      margin-bottom: 24px;
+      font-size: 2rem;
+      color: #e91e63;
+      user-select: none;
+    }
+
+    .caption {
+      text-align: center;
+      font-size: 1.1rem;
+      color: #555;
+      margin-bottom: 32px;
+      font-style: italic;
+    }
+
+    /* ---------- card ---------- */
+    .brand-card {
+      background: #fff;
+      border: none;
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, .08);
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: background-color .3s, box-shadow .3s, transform .3s;
+    }
+
+    .brand-card:hover {
+      background: #fce4ec;
+      box-shadow: 0 16px 30px rgba(0, 0, 0, .15);
+      transform: translateY(-5px);
+    }
+
+    .brand-image img {
+      max-width: 100px;
+      max-height: 80px;
+      object-fit: contain;
+      margin-bottom: 12px;
+    }
+
+    .brand-title {
+      color: #e91e63;
+      font-weight: 600;
+      margin-bottom: 6px;
+      text-align: center;
+    }
+
+    .brand-desc {
+      color: #666;
+      font-size: .9rem;
+      text-align: center;
+      margin-bottom: 18px;
+    }
+
+    /* ---------- size / price boxes ---------- */
+    .size-option {
+      border: 2px solid #e1bee7;
+      border-radius: 12px;
+      padding: 12px;
+      cursor: pointer;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: .25s;
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+    }
+
+    .size-option.selected,
+    .size-option:hover {
+      background: #f8bbd0;
+      border-color: #e91e63;
+    }
+
+    .size-label {
+      font-weight: 600;
+      font-size: 18px;
+      margin-bottom: 6px;
+      white-space: nowrap;
+    }
+
+    .price-label {
+      color: #555;
+      font-size: .9rem;
+      white-space: nowrap;
+    }
+
+    /* ---------- quantity control ---------- */
+    .quantity-control {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .quantity-input {
+      width: 60px;
+      text-align: center;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      padding: 6px 10px;
+    }
+
+    .btn-qty {
+      background: #e1bee7;
+      border: none;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      font-size: 20px;
+      line-height: 1;
+      font-weight: 600;
+      color: #c2185b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: .2s;
+    }
+
+    .btn-qty:hover {
+      background: #e91e63;
+      color: #fff;
+    }
+
+    /* ---------- buy button ---------- */
+    .btn-buy {
+      background: #e91e63;
+      border: none;
+      border-radius: 30px;
+      color: #fff;
+      padding: 8px 24px;
+      transition: background-color .3s, box-shadow .3s;
+      font-size: 16px;
+    }
+
+    .btn-buy:hover {
+      background: #c2185b;
+      box-shadow: 0 4px 12px rgba(194, 24, 91, .6);
+    }
+
+    /* ---------- grid ---------- */
+    #brandWrapper {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    /* ---------- footer ---------- */
+    footer {
+      text-align: center;
+      margin-top: 60px;
+      font-style: italic;
+      color: #c2185b;
+      user-select: none;
+      font-size: 18px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- heading -->
+  <h2 class="title">Choose Your Sanitary Pad</h2>
+  <div class="decorative-flourish">❀❀❀</div>
+  <p class="caption">
+    Your comfort, your choice — pick what suits you best and stay worry free every day. 🌸
+  </p>
+
+  <!-- cards -->
+  <div class="container">
+    <div id="brandWrapper"></div>
+  </div>
+
+  <footer>
+    Experience comfort like never before — because you deserve the best every day! 🌸
+  </footer>
+
+  <!-- ==================== SCRIPT ==================== -->
+  <script>
+    /* ---------- product data ---------- */
+    const brands = [
+      { name: 'Whisper', description: 'Trusted by millions, Whisper offers superior protection and comfort.', prices: { S: 25, L: 30, XL: 35 }, image: 'images/whisper2-logo.jpeg' },
+      { name: 'Stayfree', description: 'Stay fresh and active with Stayfree’s long lasting absorption.', prices: { S: 24, L: 29, XL: 34 }, image: 'images/stayfree-logo.jpeg' },
+      { name: 'Sofy', description: 'Soft and reliable — Sofy keeps you confident all day.', prices: { S: 22, L: 28, XL: 33 }, image: 'images/sofy-logo.jpeg' },
+      { name: 'Comfy', description: 'Affordable and gentle, Comfy is perfect for everyday comfort.', prices: { S: 20, L: 26, XL: 31 }, image: 'images/comfy-logo.png' }
+    ];
+
+    /* ---------- render cards ---------- */
+    const wrapper = document.getElementById('brandWrapper');
+    brands.forEach((brand, idx) => {
+      const card = document.createElement('div');
+      card.className = 'brand-card';
+      card.innerHTML = `
+      <div class="brand-image text-center">
+        <img src="${brand.image}" alt="${brand.name} logo">
+      </div>
+      <h4 class="brand-title">${brand.name}</h4>
+      <p class="brand-desc">${brand.description}</p>
+    `;
+
+      /* sizes */
+      const sizeRow = document.createElement('div');
+      sizeRow.className = 'row g-3 justify-content-center mb-3';
+      ['S', 'L', 'XL'].forEach(size => {
+        const col = document.createElement('div');
+        col.className = 'col-4';
+        col.innerHTML = `
+        <div class="size-option" data-brand="${idx}" data-size="${size}">
+          <div class="size-label">${size}</div>
+          <div class="price-label">₹${brand.prices[size]}</div>
+        </div>
+      `;
+        sizeRow.appendChild(col);
+      });
+      card.appendChild(sizeRow);
+
+      /* quantity + button */
+      const controls = document.createElement('div');
+      controls.className = 'd-flex flex-column flex-md-row align-items-center justify-content-center gap-3';
+      controls.innerHTML = `
+      <div class="quantity-control">
+        <button class="btn-qty minus" data-brand="${idx}">−</button>
+        <input type="text" value="1" class="quantity-input" id="qty-${idx}" readonly>
+        <button class="btn-qty plus" data-brand="${idx}">+</button>
+      </div>
+      <button class="btn-buy" data-brand="${idx}">Buy&nbsp;Now</button>
+    `;
+      card.appendChild(controls);
+
+      wrapper.appendChild(card);
+    });
+
+    /* ---------- size selection ---------- */
+    document.addEventListener('click', e => {
+      const opt = e.target.closest('.size-option');
+      if (opt) {
+        const idx = opt.dataset.brand;
+        document.querySelectorAll(`.size-option[data-brand="${idx}"]`).forEach(el => el.classList.remove('selected'));
+        opt.classList.add('selected');
+      }
+    });
+
+    /* ---------- quantity +/- ---------- */
+    document.addEventListener('click', e => {
+      const btn = e.target.closest('.btn-qty');
+      if (!btn) return;
+      const idx = btn.dataset.brand;
+      const input = document.getElementById(`qty-${idx}`);
+      let val = parseInt(input.value) || 1;
+      if (btn.classList.contains('plus')) val++;
+      else if (btn.classList.contains('minus')) val = Math.max(1, val - 1);
+      input.value = val;
+    });
+
+    function saveOrder(orderData) {
+      db.collection("orders").add(orderData)
+        .then(() => {
+          alert("Order saved successfully!");
+        })
+        .catch((error) => {
+          console.error("Error saving order: ", error);
+          alert("Failed to save order: " + error.message);
+        });
+    }
+
+
+    document.getElementById('buyNowButton').addEventListener('click', function () {
+      const orderData = {
+        brand: selectedBrand,
+        size: selectedSize,
+        quantity: selectedQuantity,
+        totalPrice: calculatedTotal,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      };
+
+      saveOrder(orderData);
+    });
+
+
+  </script>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+  <!-- Your Firebase config, no import here -->
+  <script>
+    // Your firebase-config.js content here
+    const firebaseConfig = {
+      apiKey: "AIzaSyAFumMkI_Ov2eIa_izDy3CZwfbYQPVdZNw",
+      authDomain: "smart-vending-machine-66e22.firebaseapp.com",
+      projectId: "smart-vending-machine-66e22",
+      storageBucket: "smart-vending-machine-66e22.firebasestorage.app",
+      messagingSenderId: "483676574873",
+      appId: "1:483676574873:web:3e22334043f1e5f84f9408",
+      measurementId: "G-BKHBCWJSZV"
+    };
+  </script>
+
+  <script>
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // Buy Now click handler - save order and redirect
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.btn-buy');
+  if (!btn) return;
+
+  const idx = btn.dataset.brand;
+  const selectedSize = document.querySelector(`.size-option.selected[data-brand="${idx}"]`);
+  if (!selectedSize) {
+    alert('Please choose a size first.');
+    return;
+  }
+
+  const size = selectedSize.dataset.size;
+  const price = brands[idx].prices[size];
+  const quantity = parseInt(document.getElementById(`qty-${idx}`).value) || 1;
+  const totalPrice = price * quantity;
+
+  const orderData = {
+    brand: brands[idx].name,
+    size: size,
+    unitPrice: price,
+    quantity: quantity,
+    totalPrice: totalPrice,
+    timestamp: Date.now()
+  };
+
+  // Save order to Firebase Realtime Database under 'orders'
+  const newOrderKey = database.ref().child('orders').push().key;
+  database.ref('orders/' + newOrderKey).set(orderData)
+    .then(() => {
+      // Removed alert here to avoid annoying popup
+      const params = new URLSearchParams(orderData).toString();
+      window.location.href = `payment.html?${params}`;
+    })
+    .catch(error => {
+      alert('Failed to save order: ' + error.message);
+    });
+});
+
+  </script>
+
+</body>
+
+</html>
